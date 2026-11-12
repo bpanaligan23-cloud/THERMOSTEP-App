@@ -19,8 +19,18 @@ android {
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
-            java.srcDirs = ['.']
-            assets.srcDirs = ['.']
+
+            java {
+                srcDirs = ['.']
+                include '**/*.kt'
+                exclude '**/build/**'
+                exclude '**/.gradle/**'
+            }
+
+            assets {
+                srcDirs = ['.']
+                include 'thermostep.html'
+            }
         }
     }
 
