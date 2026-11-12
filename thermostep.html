@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101827">
+<title>THERMOSTEP | Smart Thermal Control</title>
+<style>
+:root{color-scheme:dark;--bg:#050914;--panel:#0b1425;--panel2:#101f35;--text:#eaf7ff;--muted:#8098b4;--cyan:#48e6ff;--blue:#648cff;--green:#52f2b0;--red:#ff527c;--line:#1b3b58}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% -15%,#123653 0%,#091526 38%,#040711 78%);color:var(--text);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.15;background-image:linear-gradient(#3bdcff18 1px,transparent 1px),linear-gradient(90deg,#3bdcff18 1px,transparent 1px);background-size:32px 32px;mask-image:linear-gradient(to bottom,black,transparent 85%)}
+main{position:relative;max-width:520px;margin:auto;padding:22px 18px 36px}
+header{display:flex;justify-content:space-between;align-items:center;margin:8px 0 24px}
+.brand{display:flex;gap:12px;align-items:center;font-weight:900;letter-spacing:.19em;font-size:14px;line-height:1.15}
+.logo{width:46px;height:46px;border:1px solid #42dfff80;border-radius:14px;background:linear-gradient(145deg,#143e5c,#0a1b31);display:grid;place-items:center;color:var(--cyan);font-size:25px;box-shadow:0 0 22px #32dfff30,inset 0 0 15px #32dfff15}
+.status{font-size:11px;letter-spacing:.04em;padding:8px 11px;border:1px solid var(--line);border-radius:99px;color:var(--muted);background:#081322}
+.status.connected{color:var(--green);border-color:#2b9c79;box-shadow:0 0 16px #35efad20}
+.card{position:relative;background:linear-gradient(145deg,#0d1b2eec,#081222f5);border:1px solid #24435e;border-radius:20px;padding:19px;margin:14px 0;box-shadow:0 12px 34px #0005,inset 0 1px #ffffff09;overflow:hidden}
+.card:after{content:"";position:absolute;top:0;left:18px;right:18px;height:1px;background:linear-gradient(90deg,transparent,#4ce7ff8a,transparent)}
+.eyebrow{color:#8caac4;font-size:10px;font-weight:800;letter-spacing:.17em;text-transform:uppercase}
+.bigtemp{font-size:58px;line-height:1.15;font-weight:800;letter-spacing:-.06em;margin:10px 0;color:#f2fbff;text-shadow:0 0 24px #44dfff35}
+.bigtemp small{font-size:18px;color:var(--cyan);letter-spacing:0}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+button{border:1px solid transparent;border-radius:12px;padding:13px 15px;font:800 13px system-ui;letter-spacing:.05em;cursor:pointer;transition:.18s}
+button:active{transform:scale(.98)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.connect{background:linear-gradient(120deg,#123e5b,#175c79);border-color:#39c9ed80;color:#dffaff;box-shadow:0 0 18px #29d6ff18}
+.power{width:100%;background:linear-gradient(100deg,#17c991,#68f5bc);color:#03251c;font-size:14px;box-shadow:0 0 22px #35efad25}
+.power.off{background:linear-gradient(100deg,#1a2d43,#263d56);border-color:#44617b;color:#d8eaff;box-shadow:none}
+.stepbtn{background:#10243a;border-color:#28516d;color:#dffaff;min-width:105px}
+input[type=range]{width:100%;accent-color:var(--cyan);margin:22px 0 9px;cursor:pointer}
+.rangeends{display:flex;justify-content:space-between;color:#7794b0;font-size:11px}
+.target{font-size:25px;font-weight:800;color:var(--cyan)}
+.meta{color:var(--muted);font-size:12px;line-height:1.55}
+.metric{font-size:28px;font-weight:800;letter-spacing:-.04em;color:#f0fbff}
+.batterybar{height:8px;background:#1a2d43;border-radius:20px;overflow:hidden;margin-top:11px;border:1px solid #2a435d}
+.batteryfill{height:100%;width:0;background:linear-gradient(90deg,#28c9d9,#55f0b2);box-shadow:0 0 14px #4cf0bd;transition:width .25s}
+.pill{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;border-radius:99px;padding:6px 9px;background:#14283d;border:1px solid #294760;color:#94aec5}
+.notice{font-size:11px;color:#7891aa;line-height:1.6;margin:16px 4px}
+.log{background:#050c17;border:1px solid #1b3b58;padding:11px;border-radius:11px;min-height:40px;white-space:pre-wrap;overflow-wrap:anywhere;font:11px ui-monospace,monospace;color:#8edcf0}
+@media(min-width:520px){main{padding-top:32px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="brand"><div class="logo">❄</div><div>THERMO<br>STEP</div></div>
+  <div id="status" class="status">● Disconnected</div>
+</header>
+
+<section class="card">
+  <div class="row">
+    <div class="eyebrow">Thermal setpoint</div>
+    <span class="pill">17–45 °C</span>
+  </div>
+  <div class="bigtemp"><span id="targetReadout">25.0</span><small> °C</small></div>
+  <input id="slider" type="range" min="17" max="45" step="0.1" value="25">
+  <div class="rangeends"><span>17°C</span><span>45°C</span></div>
+  <div class="row" style="margin-top:18px">
+    <button id="down" class="stepbtn">− 10%</button>
+    <div class="meta" style="text-align:center">2.8°C per step</div>
+    <button id="up" class="stepbtn">+ 10%</button>
+  </div>
+</section>
+
+<section class="card">
+  <div class="row" style="margin-bottom:14px">
+    <div><div class="eyebrow">Thermal engine</div><div id="powerText" style="font-size:20px;font-weight:800;margin-top:5px">OFF</div></div>
+    <span id="powerPill" class="pill">Output disabled</span>
+  </div>
+  <button id="power" class="power off" disabled>⏻ &nbsp; TURN ON</button>
+  <p class="meta" style="margin-bottom:0">The ESP32 should regulate toward the target using its temperature sensor and driver circuit.</p>
+</section>
+
+<section class="card">
+  <div class="row">
+    <div><div class="eyebrow">Power reserve</div><div class="metric"><span id="battery">--</span><small style="font-size:16px;color:var(--muted)"> %</small></div></div>
+    <div style="font-size:30px" id="batteryIcon">▱</div>
+  </div>
+  <div class="batterybar"><div id="batteryFill" class="batteryfill"></div></div>
+  <div class="row" style="margin-top:15px">
+    <div><div class="eyebrow">Live temperature</div><div class="metric"><span id="actual">--</span><small style="font-size:15px;color:var(--muted)"> °C</small></div></div>
+    <button id="connect" class="connect">Connect BLE</button>
+  </div>
+  <div class="meta" style="margin-top:12px">HARDWARE LINK  /  XIAO ESP32-C3</div>
+</section>
+
+<section class="card">
+  <div class="eyebrow" style="margin-bottom:9px">SYSTEM TELEMETRY</div>
+  <div id="log" class="log">SYSTEM READY // Awaiting BLE handshake</div>
+</section>
+<p class="notice">BLE browser support: use Chrome on Android over HTTPS (or a locally hosted page). This page uses a custom BLE service and characteristic UUID. The ESP32 firmware must use the same UUIDs and newline-delimited JSON messages described in the accompanying notes. Do not connect the Peltier directly to an ESP32 GPIO; use a correctly rated driver and power supply.</p>
+</main>
+<script>
+(() => {
+  // These UUIDs are the agreed app/firmware interface. Keep them identical in the ESP32 sketch.
+  const SERVICE_UUID = '7b3e0001-8a6d-4f2b-9c1d-5e7a0b2c0001';
+  const RX_UUID      = '7b3e0002-8a6d-4f2b-9c1d-5e7a0b2c0001'; // App -> ESP32 writes
+  const TX_UUID      = '7b3e0003-8a6d-4f2b-9c1d-5e7a0b2c0001'; // ESP32 -> App notifications
+
+  const $ = id => document.getElementById(id);
+  let device=null, server=null, rx=null, tx=null, enabled=false, target=25, writeQueue=Promise.resolve();
+  const encoder=new TextEncoder();
+  function log(s){$('log').textContent=s}
+  function setStatus(s,ok=false){$('status').textContent='● '+s;$('status').classList.toggle('connected',ok)}
+  function displayTarget(){ $('targetReadout').textContent=target.toFixed(1); $('slider').value=target; }
+  function send(obj){
+    if(window.ThermostepBle){
+      if(!window.__thermostepConnected){log('Not connected. Connect to the ESP32 first.');return}
+      window.ThermostepBle.send(JSON.stringify(obj));
+      return;
+    }
+    if(!rx || !server?.connected){log('Not connected. Pair with the ESP32 first.');return}
+    const bytes=encoder.encode(JSON.stringify(obj)+'\n');
+    writeQueue=writeQueue.then(()=>rx.writeValue(bytes)).catch(e=>log('BLE write error: '+e.message));
+  }
+  function setTarget(v,sendNow=true){
+    target=Math.max(17,Math.min(45,Math.round(v*10)/10));displayTarget();
+    if(sendNow)send({cmd:'set_temp',value:Number(target.toFixed(1))});
+  }
+  $('slider').addEventListener('input',e=>setTarget(Number(e.target.value)));
+  $('down').addEventListener('click',()=>setTarget(target-2.8));
+  $('up').addEventListener('click',()=>setTarget(target+2.8));
+  $('power').addEventListener('click',()=>{
+    enabled=!enabled; updatePower(); send({cmd:'power',value:enabled});
+  });
+  function updatePower(){
+    $('powerText').textContent=enabled?'ON':'OFF';
+    $('powerPill').textContent=enabled?'Output enabled':'Output disabled';
+    $('power').textContent=enabled?'⏻  TURN OFF':'⏻  TURN ON';
+    $('power').classList.toggle('off',!enabled);
+  }
+  function onNotification(event){
+    const value=new TextDecoder().decode(event.target.value);
+    // Firmware sends one JSON object per notification, e.g. {"temp":24.8,"battery":82,"power":true}
+    try{
+      const d=JSON.parse(value);
+      if(Number.isFinite(Number(d.temp))) $('actual').textContent=Number(d.temp).toFixed(1);
+      if(Number.isFinite(Number(d.battery))){
+        const b=Math.max(0,Math.min(100,Number(d.battery)));
+        $('battery').textContent=Math.round(b);$('batteryFill').style.width=b+'%';
+        $('batteryIcon').textContent=b>60?'▰':b>25?'▱':'▱';
+      }
+      if(typeof d.power==='boolean'){enabled=d.power;updatePower()}
+      if(Number.isFinite(Number(d.target))){target=Math.max(17,Math.min(45,Number(d.target)));displayTarget()}
+      log('ESP32: '+value.trim());
+    }catch(_){log('ESP32: '+value.trim())}
+  }
+  async function disconnect(){
+    try{if(tx)tx.removeEventListener('characteristicvaluechanged',onNotification);if(device?.gatt?.connected)device.gatt.disconnect()}catch(_){}
+    rx=null;tx=null;server=null;device=null;$('power').disabled=true;setStatus('Disconnected');log('Disconnected from controller.');
+  }
+  $('connect').addEventListener('click',async()=>{
+    if(window.ThermostepBle){
+      if(window.__thermostepConnected){window.ThermostepBle.disconnect();return;}
+      $('connect').disabled=true;log('Scanning for THERMOSTEP controller…');
+      window.ThermostepBle.connect();
+      return;
+    }
+    if(!navigator.bluetooth){log('Web Bluetooth is unavailable. Use the Android app or Chrome on Android over HTTPS.');return}
+    try{
+      $('connect').disabled=true;log('Scanning for THERMOSTEP controller…');
+      device=await navigator.bluetooth.requestDevice({filters:[{services:[SERVICE_UUID]}],optionalServices:[SERVICE_UUID]});
+      device.addEventListener('gattserverdisconnected',disconnect);
+      server=await device.gatt.connect();
+      const service=await server.getPrimaryService(SERVICE_UUID);
+      rx=await service.getCharacteristic(RX_UUID);
+      tx=await service.getCharacteristic(TX_UUID);
+      await tx.startNotifications();
+      tx.addEventListener('characteristicvaluechanged',onNotification);
+      $('power').disabled=false;setStatus('Connected: '+device.name,true);
+      $('connect').textContent='Disconnect';
+      log('Connected to '+device.name+'. Sending initial setpoint.');
+      send({cmd:'set_temp',value:Number(target.toFixed(1))});
+    }catch(e){log('Connection failed: '+e.message);setStatus('Disconnected')}
+    finally{$('connect').disabled=false}
+  });
+  window.onNativeBleStatus=(message,connected)=>{
+    window.__thermostepConnected=!!connected;
+    setStatus(message,!!connected);
+    $('connect').disabled=false;
+    $('connect').textContent=connected?'Disconnect':'Connect BLE';
+    $('power').disabled=!connected;
+    if(!connected){enabled=false;updatePower();}
+    log(message);
+    if(connected)send({cmd:'set_temp',value:Number(target.toFixed(1))});
+  };
+  window.onNativeBleNotification=(value)=>{
+    const bytes=new TextEncoder().encode(value);
+    onNotification({target:{value:new DataView(bytes.buffer)}});
+  };
+  displayTarget();updatePower();
+})();
+</script>
+</body>
+</html>
