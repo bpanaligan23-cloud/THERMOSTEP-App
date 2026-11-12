@@ -23,14 +23,18 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Gradle 8.9
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Prepare HTML assets
+      - name: Prepare Android project folders
         run: |
+          mkdir -p src/main/java/com/thermostep/app
           mkdir -p src/main/assets
+
+          cp AndroidManifest.xml src/main/AndroidManifest.xml
+          cp MainActivity.kt src/main/java/com/thermostep/app/MainActivity.kt
           cp thermostep.html src/main/assets/thermostep.html
 
       - name: Build APK
