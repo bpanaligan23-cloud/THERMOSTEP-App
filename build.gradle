@@ -28,8 +28,7 @@ android {
             }
 
             assets {
-                srcDirs = ['.']
-                include 'thermostep.html'
+                srcDirs = ['src/main/assets']
             }
         }
     }
